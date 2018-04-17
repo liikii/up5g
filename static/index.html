@@ -12,7 +12,8 @@
         background-color:#f1f1f1;
     }
     .progress_blue{
-        text-align:center;
+        /*text-align: center;*/
+        text-align: right;
         color:#fff;
         background-color:#2196F3;
     }
@@ -34,17 +35,15 @@
 
                 var percent = (event.loaded / event.total) * 100;
                 console.log(percent);
-                pcs = percent.toFixed(2) + '%'
+                pcs = percent.toFixed(0)
                 $('#blue_bar').text(pcs);
-                $("#blue_bar").attr("style", "width:" + pcs);
+                $("#blue_bar").attr("style", "width:" + pcs + '%');
             });
 
             xhr.open("POST", "/up");
             xhr.send(data);
             evt.preventDefault();
         });
-
-        
 
     }); 
 </script>
@@ -59,7 +58,7 @@
 </form>
 
 <div class="progress_grey">
-  <div id='blue_bar' class="progress_blue" style="width:0%">0%</div>
+  <div id='blue_bar' class="progress_blue" style="width:0%"></div>
 </div>
 
 

@@ -10,23 +10,6 @@ from tornado.httpserver import HTTPServer
 from tornado import web
 
 
-page = """<!DOCTYPE html>
-<html>
-<body>
-
-<form action="/up" method="post" enctype="multipart/form-data">
-  Select images: <input type="file" name="files" multiple/>
-  <input type="submit" value='up it'>
-</form>
-
-<p>Try selecting more than one file when browsing for files.</p>
-
-<p><strong>Note:</strong> The multiple attribute of the input tag is not supported in Internet Explorer 9 and earlier versions.</p>
-
-</body>
-</html>"""
-
-
 def get_boundary(hd):
     ctp = hd.get('Content-Type', '')
     if ctp.startswith('multipart/form-data; boundary='):
@@ -118,18 +101,9 @@ class PUTHandler(tornado.web.RequestHandler):
         print('finish.')
 
 
-class IndexHandler(tornado.web.RequestHandler):
-    def get(self):
-        self.write(page)
-
-    def post(self):
-        return
-
-
 def make_app():
     return tornado.web.Application([
         (r"/up", PUTHandler),
-        # (r"/?", IndexHandler),
         (r"/?()", web.StaticFileHandler, {"path": './static', 'default_filename': 'index.html'}),
         (r"/s/(.*)", web.StaticFileHandler, {"path": './static'})
     ], autoreload=True)
