@@ -13,6 +13,7 @@
     }
     .progress_blue{
         /*text-align: center;*/
+        font-family: "Times New Roman", Times, serif;
         text-align: right;
         color:#fff;
         background-color:#2196F3;
@@ -24,12 +25,15 @@
     $(document).ready(function() {
        
         $("#upit").click(function(evt){
+            $('#blue_bar').text('');
+            $("#blue_bar").attr("style", "width:" + "0" + "%");
             var xhr = new XMLHttpRequest();
             var data = new FormData();
             var files = $("#files").get(0).files;
             for (var i = 0; i < files.length; i++) {
                 data.append(files[i].name, files[i]);
             };
+
 
             xhr.upload.addEventListener("progress", function (event) {
 
