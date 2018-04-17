@@ -52,6 +52,7 @@ class PUTHandler(tornado.web.RequestHandler):
         self.bre = None
         self.msg_rmn = b''
         self.file = None
+        self.flg = 0
         super(PUTHandler, self).__init__(application, request, **kwargs)
 
     def initialize(self):
@@ -70,20 +71,19 @@ class PUTHandler(tornado.web.RequestHandler):
         # self.bytes_read += len(chunk)
         real_msg = self.msg_rmn + chunk
         msg = b''
-        flg = 0
-        print(self.bre.split(real_msg))
+
         for chunk_virtual in self.bre.split(real_msg):
             msg += chunk_virtual
-            if flg == 0:
+            if self.flg == 0:
                 if b'\r\n\r\n' not in msg:
                     continue
                 else:
                     hd, tr = msg.split(b'\r\n\r\n', 1)
                     fn = get_file_name(hd)
-                    flg = 1
+                    self.flg = 1
                     self.file = open(fn, 'wb')
                     msg = tr
-            if flg == 1:
+            if self.flg == 1:
                 if b'\r\n' not in msg:
                     continue
                 else:
@@ -92,15 +92,14 @@ class PUTHandler(tornado.web.RequestHandler):
                         self.file.write(mhd)
                         self.file.close()
                         msg = mtr
-                        flg = 0
+                        self.flg = 0
                     elif self.boundary_end in msg:
                         mhd, mtr = msg.split(self.boundary_end)
                         self.file.write(mhd)
                         self.file.close()
                         msg = mtr
-                        flg = 0
+                        self.flg = 0
                     elif len(msg[msg.rindex(b'\r\n'):]) < len(self.boundary_end):
-                        print(msg)
                         self.file.write(msg[0: msg.rindex(b'\r\n')])
                         msg = msg[msg.rindex(b'\r\n'):]
                     else:
