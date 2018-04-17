@@ -68,7 +68,6 @@ class PUTHandler(tornado.web.RequestHandler):
         if self.rf:
             return
 
-        # self.bytes_read += len(chunk)
         real_msg = self.msg_rmn + chunk
         msg = b''
 
@@ -84,27 +83,25 @@ class PUTHandler(tornado.web.RequestHandler):
                     self.file = open(fn, 'wb')
                     msg = tr
             if self.flg == 1:
-                if b'\r\n' not in msg:
-                    continue
+
+                if self.boundary_str in msg:
+                    mhd, mtr = msg.split(self.boundary_str)
+                    self.file.write(mhd)
+                    self.file.close()
+                    msg = mtr
+                    self.flg = 0
+                elif self.boundary_end in msg:
+                    mhd, mtr = msg.split(self.boundary_end)
+                    self.file.write(mhd)
+                    self.file.close()
+                    msg = mtr
+                    self.flg = 0
+                elif b'\r' in msg and len(msg[msg.rindex(b'\r'):]) < len(self.boundary_end):
+                    self.file.write(msg[0: msg.rindex(b'\r')])
+                    msg = msg[msg.rindex(b'\r'):]
                 else:
-                    if self.boundary_str in msg:
-                        mhd, mtr = msg.split(self.boundary_str)
-                        self.file.write(mhd)
-                        self.file.close()
-                        msg = mtr
-                        self.flg = 0
-                    elif self.boundary_end in msg:
-                        mhd, mtr = msg.split(self.boundary_end)
-                        self.file.write(mhd)
-                        self.file.close()
-                        msg = mtr
-                        self.flg = 0
-                    elif len(msg[msg.rindex(b'\r\n'):]) < len(self.boundary_end):
-                        self.file.write(msg[0: msg.rindex(b'\r\n')])
-                        msg = msg[msg.rindex(b'\r\n'):]
-                    else:
-                        self.file.write(msg)
-                        msg = b''
+                    self.file.write(msg)
+                    msg = b''
 
         self.msg_rmn = msg
 
