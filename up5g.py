@@ -144,7 +144,7 @@ if __name__ == "__main__":
     # Tornado configures logging.
     # options.parse_command_line()
     app = make_app()
-    max_buffer_size = 10 * 1024 ** 5  # 4GB
+    max_buffer_size = 1024 ** 3 * 10  # 4GB
     http_server = HTTPServer(
         app,
         max_buffer_size=max_buffer_size,
