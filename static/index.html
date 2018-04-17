@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    .progress{
+        width: 250px;
+        height: 20px;
+    }
+
+    .progress_grey{
+        color:#000;
+        background-color:#f1f1f1;
+    }
+    .progress_blue{
+        text-align:center;
+        color:#fff;
+        background-color:#2196F3;
+    }
+
+</style>
+<script src="/s/jquery.min.js"></script>
+<script>
+    $(document).ready(function() {
+       
+        $("#upit").click(function(evt){
+            var xhr = new XMLHttpRequest();
+            var data = new FormData();
+            var files = $("#files").get(0).files;
+            for (var i = 0; i < files.length; i++) {
+                data.append(files[i].name, files[i]);
+            };
+
+            xhr.upload.addEventListener("progress", function (event) {
+
+                var percent = (event.loaded / event.total) * 100;
+                console.log(percent);
+                pcs = percent.toFixed(2) + '%'
+                $('#blue_bar').text(pcs);
+                $("#blue_bar").attr("style", "width:" + pcs);
+            });
+
+            xhr.open("POST", "/up");
+            xhr.send(data);
+            evt.preventDefault();
+        });
+
+        
+
+    }); 
+</script>
+
+</head>
+
+<body>
+
+<form action="/up" method="post" enctype="multipart/form-data">
+  Select images: <input id='files' type="file" name="files" multiple/>
+  <input id='upit' type="submit" value='up it'>
+</form>
+
+<div class="progress_grey">
+  <div id='blue_bar' class="progress_blue" style="width:0%">0%</div>
+</div>
+
+
+<p>Try selecting more than one file when browsing for files.</p>
+<p><strong>Note:</strong> The multiple attribute of the input tag is not supported in Internet Explorer 9 and earlier versions.</p>
+
+</body>
+</html>
