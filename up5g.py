@@ -1,64 +1,10 @@
 # -*- encoding: utf-8 -*-
 """
-self = {}
-
-boundary_str = b"\r\n" + b'-----ddd' + b'\r\n'
-boundary_end = b"\r\n" + boundary_str + b'--' + b'\r\n'
-bre = re.compile(b'(\r\n' + boundary_str + b'(?:--)?\r\n)')
-
-
-def get_file_name(hd):
-    return 'hahah' + hd
-
-
-chunks = ['1,', '33']
-
-
-msg_rmn = b''
-real_msg = msg_rmn + b'chunk'
-msg = b''
-flg = 0
-
-
-for chunk_virtual in bre.split(real_msg):
-    msg += chunk_virtual
-    if flg == 0:
-        if b'\r\n\r\n' not in msg:
-            continue
-        else:
-            hd, tr = msg.split(b'\r\n\r\n', 1)
-            fn = get_file_name(hd)
-            flg = 1
-            self.file = open(fn, 'wb')
-            msg = tr
-    if flg == 1:
-        if b'\r\n' not in msg:
-            continue
-        else:
-            if boundary_str in msg:
-                self.file.write(msg.split(boundary_str)[0])
-                self.file.close()
-                msg = b''
-                flg = 0
-            elif boundary_end in msg:
-                self.file.write(msg.split(boundary_end)[0])
-                self.file.close()
-                msg = b''
-                flg = 0
-            elif len(msg[msg.rindex(b'\r\n'):]) <= len(boundary_end):
-                self.file.write(msg[0: msg.rindex(b'\r\n')])
-                msg = msg[msg.rindex(b'\r\n'):]
-            else:
-                self.file.write(msg)
-                msg = b''
-
-
-msg_rmn = msg
-msg = b''
 """
+import re
+
 import tornado.ioloop
 import tornado.web
-from tornado import options
 from tornado.httpserver import HTTPServer
 
 
@@ -81,32 +27,91 @@ page = """<!DOCTYPE html>
 </body>
 </html>"""
 
-# def get_
+
+def get_boundary(hd):
+    ctp = hd.get('Content-Type', '')
+    if ctp.startswith('multipart/form-data; boundary='):
+        return ctp[30:].encode()
 
 
+def get_file_name(hd):
+    return 'haha.txt'
 
-def handle_payload(self, chunk):
-    pass
+
+# def handle_payload(self, chunk):
+#     pass
 
 
 @tornado.web.stream_request_body
 class PUTHandler(tornado.web.RequestHandler):
+    def __init__(self, application, request, **kwargs):
+        self.bytes_read = 0
+        self.rf = 1
+        self.boundary_str = None
+        self.boundary_end = None
+        self.bre = None
+        self.msg_rmn = b''
+        self.file = None
+        super(PUTHandler, self).__init__(application, request, **kwargs)
+
     def initialize(self):
         self.bytes_read = 0
-        # self.redirect('/')
-
+        boundary = get_boundary(self.request.headers)
+        if boundary is not None:
+            self.rf = 0
+            self.boundary_str = b"\r\n--" + boundary + b'\r\n'
+            self.boundary_end = b"\r\n--" + boundary + b'--' + b'\r\n'
+            self.bre = re.compile(b'(\r\n--' + boundary + b'(?:--)?\r\n)')
 
     def data_received(self, chunk):
-        if self.bytes_read == 0:
-            print(self.request.headers)
-            # print(chunk)
-        # print('get chunk')
-        print(chunk)
-        self.bytes_read += len(chunk)
+        if self.rf:
+            return
+
+        # self.bytes_read += len(chunk)
+        real_msg = self.msg_rmn + chunk
+        msg = b''
+        flg = 0
+        print(self.bre.split(real_msg))
+        for chunk_virtual in self.bre.split(real_msg):
+            msg += chunk_virtual
+            if flg == 0:
+                if b'\r\n\r\n' not in msg:
+                    continue
+                else:
+                    hd, tr = msg.split(b'\r\n\r\n', 1)
+                    fn = get_file_name(hd)
+                    flg = 1
+                    self.file = open(fn, 'wb')
+                    msg = tr
+            if flg == 1:
+                if b'\r\n' not in msg:
+                    continue
+                else:
+                    if self.boundary_str in msg:
+                        mhd, mtr = msg.split(self.boundary_str)
+                        self.file.write(mhd)
+                        self.file.close()
+                        msg = mtr
+                        flg = 0
+                    elif self.boundary_end in msg:
+                        mhd, mtr = msg.split(self.boundary_end)
+                        self.file.write(mhd)
+                        self.file.close()
+                        msg = mtr
+                        flg = 0
+                    elif len(msg[msg.rindex(b'\r\n'):]) < len(self.boundary_end):
+                        print(msg)
+                        self.file.write(msg[0: msg.rindex(b'\r\n')])
+                        msg = msg[msg.rindex(b'\r\n'):]
+                    else:
+                        self.file.write(msg)
+                        msg = b''
+
+        self.msg_rmn = msg
 
     def post(self):
         # filename = unquote(filename)
-        mtype = self.request.headers.get('Content-Type')
+        # mtype = self.request.headers.get('Content-Type')
         # print('post "%s" "%s" %d bytes', 'file_name', mtype, self.bytes_read)
         # print(self.request.headers)
         self.write('OK')
