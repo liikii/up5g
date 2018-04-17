@@ -115,7 +115,7 @@ class PUTHandler(tornado.web.RequestHandler):
         self.write(page)
 
     def on_finish(self):
-        print('finish..')
+        print('finish.')
 
 
 class IndexHandler(tornado.web.RequestHandler):
