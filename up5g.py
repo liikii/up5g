@@ -123,7 +123,6 @@ class IndexHandler(tornado.web.RequestHandler):
         self.write(page)
 
     def post(self):
-        # self.write(page)
         return
 
 
@@ -136,11 +135,7 @@ def make_app():
     ], autoreload=True)
 
 
-# curl -vX POST --data-binary @cache.zip http://192.168.1.200:8888
-# url -vX POST --data-binary @cache.zip http://127.0.0.1:8888
 if __name__ == "__main__":
-    # Tornado configures logging.
-    # options.parse_command_line()
     app = make_app()
     max_buffer_size = 1024 ** 3 * 10  # 4GB
     http_server = HTTPServer(
@@ -148,5 +143,4 @@ if __name__ == "__main__":
         max_buffer_size=max_buffer_size,
     )
     http_server.listen(8888)
-    # app.listen(8888)
     tornado.ioloop.IOLoop.current().start()
