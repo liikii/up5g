@@ -1,3 +1,61 @@
+# -*- encoding: utf-8 -*-
+"""
+self = {}
+
+boundary_str = b"\r\n" + b'-----ddd' + b'\r\n'
+boundary_end = b"\r\n" + boundary_str + b'--' + b'\r\n'
+bre = re.compile(b'(\r\n' + boundary_str + b'(?:--)?\r\n)')
+
+
+def get_file_name(hd):
+    return 'hahah' + hd
+
+
+chunks = ['1,', '33']
+
+
+msg_rmn = b''
+real_msg = msg_rmn + b'chunk'
+msg = b''
+flg = 0
+
+
+for chunk_virtual in bre.split(real_msg):
+    msg += chunk_virtual
+    if flg == 0:
+        if b'\r\n\r\n' not in msg:
+            continue
+        else:
+            hd, tr = msg.split(b'\r\n\r\n', 1)
+            fn = get_file_name(hd)
+            flg = 1
+            self.file = open(fn, 'wb')
+            msg = tr
+    if flg == 1:
+        if b'\r\n' not in msg:
+            continue
+        else:
+            if boundary_str in msg:
+                self.file.write(msg.split(boundary_str)[0])
+                self.file.close()
+                msg = b''
+                flg = 0
+            elif boundary_end in msg:
+                self.file.write(msg.split(boundary_end)[0])
+                self.file.close()
+                msg = b''
+                flg = 0
+            elif len(msg[msg.rindex(b'\r\n'):]) <= len(boundary_end):
+                self.file.write(msg[0: msg.rindex(b'\r\n')])
+                msg = msg[msg.rindex(b'\r\n'):]
+            else:
+                self.file.write(msg)
+                msg = b''
+
+
+msg_rmn = msg
+msg = b''
+"""
 import tornado.ioloop
 import tornado.web
 from tornado import options
@@ -23,6 +81,9 @@ page = """<!DOCTYPE html>
 </body>
 </html>"""
 
+# def get_
+
+
 
 def handle_payload(self, chunk):
     pass
@@ -32,8 +93,8 @@ def handle_payload(self, chunk):
 class PUTHandler(tornado.web.RequestHandler):
     def initialize(self):
         self.bytes_read = 0
-        print(self.request)
-        print(id(self))
+        # self.redirect('/')
+
 
     def data_received(self, chunk):
         if self.bytes_read == 0:
