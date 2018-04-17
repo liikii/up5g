@@ -1,13 +1,23 @@
 # -*- encoding: utf-8 -*-
 """
 """
+from os.path import join
 from uuid import uuid4
+from os import mkdir
 import re
 
 import tornado.ioloop
 import tornado.web
 from tornado.httpserver import HTTPServer
 from tornado import web
+
+
+FILE_BUK = 'updir'
+
+try:
+    mkdir(FILE_BUK)
+except FileExistsError:
+    pass
 
 
 def get_boundary(hd):
@@ -39,6 +49,7 @@ class PUTHandler(tornado.web.RequestHandler):
         self.msg_rmn = b''
         self.file = None
         self.flg = 0
+        self.fn = ''
         super(PUTHandler, self).__init__(application, request, **kwargs)
 
     def initialize(self):
@@ -65,11 +76,11 @@ class PUTHandler(tornado.web.RequestHandler):
                 else:
                     hd, tr = msg.split(b'\r\n\r\n', 1)
                     fn = get_file_name(hd)
+                    self.fn = fn
                     self.flg = 1
-                    self.file = open(fn, 'wb')
+                    self.file = open(join(FILE_BUK, fn), 'wb')
                     msg = tr
             if self.flg == 1:
-
                 if self.boundary_str in msg:
                     mhd, mtr = msg.split(self.boundary_str)
                     self.file.write(mhd)
@@ -80,6 +91,7 @@ class PUTHandler(tornado.web.RequestHandler):
                     mhd, mtr = msg.split(self.boundary_end)
                     self.file.write(mhd)
                     self.file.close()
+                    print('file: "%s" , ok.' % self.fn)
                     msg = mtr
                     self.flg = 0
                 elif b'\r' in msg and len(msg[msg.rindex(b'\r'):]) < len(self.boundary_end):
@@ -93,9 +105,6 @@ class PUTHandler(tornado.web.RequestHandler):
 
     def post(self):
         self.write('OK')
-
-    def get(self):
-        self.write(page)
 
     def on_finish(self):
         print('finish.')
@@ -111,7 +120,7 @@ def make_app():
 
 if __name__ == "__main__":
     app = make_app()
-    max_buffer_size = 1024 ** 3 * 10  # 4GB
+    max_buffer_size = 1024 ** 3 * 10  # 10 GB
     http_server = HTTPServer(
         app,
         max_buffer_size=max_buffer_size,
