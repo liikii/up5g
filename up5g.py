@@ -1,14 +1,13 @@
 # -*- encoding: utf-8 -*-
 """
 """
+from uuid import uuid4
 import re
 
 import tornado.ioloop
 import tornado.web
 from tornado.httpserver import HTTPServer
-
-
-from urllib.parse import unquote
+from tornado import web
 
 
 page = """<!DOCTYPE html>
@@ -35,11 +34,15 @@ def get_boundary(hd):
 
 
 def get_file_name(hd):
-    return 'haha.txt'
-
-
-# def handle_payload(self, chunk):
-#     pass
+    fn = str(uuid4()) + '.data'
+    s = hd.decode('utf8')
+    for ln in s.splitlines():
+        if ln.startswith('Content-Disposition: form-data; '):
+            try:
+                fn = ln.split(';')[2].strip()[10:-1] or fn
+            except IndexError:
+                pass
+    return fn
 
 
 @tornado.web.stream_request_body
@@ -106,10 +109,6 @@ class PUTHandler(tornado.web.RequestHandler):
         self.msg_rmn = msg
 
     def post(self):
-        # filename = unquote(filename)
-        # mtype = self.request.headers.get('Content-Type')
-        # print('post "%s" "%s" %d bytes', 'file_name', mtype, self.bytes_read)
-        # print(self.request.headers)
         self.write('OK')
 
     def get(self):
@@ -131,7 +130,9 @@ class IndexHandler(tornado.web.RequestHandler):
 def make_app():
     return tornado.web.Application([
         (r"/up", PUTHandler),
-        (r"/.*", IndexHandler)
+        # (r"/?", IndexHandler),
+        (r"/?()", web.StaticFileHandler, {"path": './static', 'default_filename': 'index.html'}),
+        (r"/s/(.*)", web.StaticFileHandler, {"path": './static'})
     ], autoreload=True)
 
 
