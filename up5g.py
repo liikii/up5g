@@ -1,9 +1,11 @@
 # -*- encoding: utf-8 -*-
 """
 """
+from logging.handlers import RotatingFileHandler
 from os.path import join
 from uuid import uuid4
 from os import mkdir
+import logging
 import re
 
 import tornado.ioloop
@@ -18,6 +20,27 @@ try:
     mkdir(FILE_BUK)
 except FileExistsError:
     pass
+
+
+def get_log(log_name='up5g_log'):
+    logger = logging.getLogger(log_name)
+    logger.setLevel(logging.DEBUG)
+
+    fh = logging.handlers.RotatingFileHandler('/tmp/up5g.log',
+                                              maxBytes=5*1024*1024)
+    # fh = logging.FileHandler('/tmp/cim_index.log')
+    fh.setLevel(logging.DEBUG)
+
+    fmt = '%(asctime)s - %(name)s - %(levelname)s \n%(message)s\n'
+    formatter = logging.Formatter(fmt)
+    fh.setFormatter(formatter)
+
+    logger.addHandler(fh)
+    return logger
+
+
+lg = get_log()
+
 
 
 def get_boundary(hd):
@@ -85,13 +108,18 @@ class PUTHandler(tornado.web.RequestHandler):
                     mhd, mtr = msg.split(self.boundary_str)
                     self.file.write(mhd)
                     self.file.close()
+                    up_info = 'file: "%s" , ok.' % self.fn
+                    lg.info(up_info)
+                    print(up_info)
                     msg = mtr
                     self.flg = 0
                 elif self.boundary_end in msg:
                     mhd, mtr = msg.split(self.boundary_end)
                     self.file.write(mhd)
                     self.file.close()
-                    print('file: "%s" , ok.' % self.fn)
+                    up_info = 'file: "%s" , ok.' % self.fn
+                    lg.info(up_info)
+                    print(up_info)
                     msg = mtr
                     self.flg = 0
                 elif b'\r' in msg and len(msg[msg.rindex(b'\r'):]) < len(self.boundary_end):
@@ -108,6 +136,7 @@ class PUTHandler(tornado.web.RequestHandler):
 
     def on_finish(self):
         print('finish.')
+        lg.info('finish.')
 
 
 def make_app():
@@ -125,5 +154,5 @@ if __name__ == "__main__":
         app,
         max_buffer_size=max_buffer_size,
     )
-    http_server.listen(8888)
+    http_server.listen(8889)
     tornado.ioloop.IOLoop.current().start()
