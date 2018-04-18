@@ -110,7 +110,6 @@ class PUTHandler(tornado.web.RequestHandler):
                     self.file.close()
                     up_info = 'file: "%s" , ok.' % self.fn
                     lg.info(up_info)
-                    print(up_info)
                     msg = mtr
                     self.flg = 0
                 elif self.boundary_end in msg:
@@ -119,7 +118,6 @@ class PUTHandler(tornado.web.RequestHandler):
                     self.file.close()
                     up_info = 'file: "%s" , ok.' % self.fn
                     lg.info(up_info)
-                    print(up_info)
                     msg = mtr
                     self.flg = 0
                 elif b'\r' in msg and len(msg[msg.rindex(b'\r'):]) < len(self.boundary_end):
@@ -154,5 +152,5 @@ if __name__ == "__main__":
         app,
         max_buffer_size=max_buffer_size,
     )
-    http_server.listen(8889)
+    http_server.listen(8888)
     tornado.ioloop.IOLoop.current().start()
