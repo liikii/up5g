@@ -1,1 +1,5 @@
 simple tornado upload file example.
+
+ls -lhtF | head -30 | sed -n '3,$p' | awk '{print $NF}' | xargs -I {} echo mv -v "{}" taskover/
+ls -1 *.zip | xargs -I {} echo unzip '"{}"'
+ls | grep -v -E '[0-9]+_[0-9]+.jpg$' |  xargs -I {} rm -fv {}
