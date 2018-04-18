@@ -23,7 +23,10 @@
 <script src="/s/jquery.min.js"></script>
 <script>
     $(document).ready(function() {
-       
+        $("#files").click(function(evt){
+            $('#blue_bar').text('');
+            $("#blue_bar").attr("style", "width:" + "0" + "%");
+        });
         $("#upit").click(function(evt){
             $('#blue_bar').text('');
             $("#blue_bar").attr("style", "width:" + "0" + "%");
