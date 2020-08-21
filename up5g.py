@@ -7,6 +7,7 @@ from uuid import uuid4
 from os import mkdir
 import logging
 import re
+import socket
 
 import tornado.ioloop
 import tornado.web
@@ -20,6 +21,12 @@ try:
     mkdir(FILE_BUK)
 except FileExistsError:
     pass
+
+
+def get_ip():
+    hostname = socket.gethostname()
+    ip_address = socket.gethostbyname(hostname)
+    return ip_address
 
 
 def get_log(log_name='up5g_log'):
@@ -146,12 +153,14 @@ def make_app():
 
 
 if __name__ == "__main__":
+    pass
     app = make_app()
     max_buffer_size = 1024 ** 3 * 10  # 10 GB
     http_server = HTTPServer(
         app,
         max_buffer_size=max_buffer_size,
     )
-    print(8585)
+    print("http://%s:%s" % (get_ip(), 8585))
     http_server.listen(8585)
     tornado.ioloop.IOLoop.current().start()
+    # print(get_ip())
